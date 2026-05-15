@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Schmear & Schmooze — Lab Notebook",
+  title: "neha's bday",
   description: "Study no. 0042 — a blind sensory evaluation of cream cheese.",
 };
 
