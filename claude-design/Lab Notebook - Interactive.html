@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Schmear &amp; Schmooze — Lab Notebook Prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Caveat:wght@500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&display=swap" rel="stylesheet">
+<style>
+  html, body { margin: 0; padding: 0; min-height: 100vh; font-family: "JetBrains Mono", ui-monospace, monospace; }
+  * { box-sizing: border-box; }
+  body {
+    background: #ece9df;
+    background-image:
+      linear-gradient(rgba(70,110,160,0.08) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(70,110,160,0.08) 1px, transparent 1px);
+    background-size: 40px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px 0;
+  }
+  body.dark {
+    background: #0e1424;
+    background-image:
+      linear-gradient(rgba(120,180,255,0.06) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(120,180,255,0.06) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+  .stage {
+    display: flex; flex-direction: column; align-items: center; gap: 18px;
+  }
+  .crumb {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    color: rgba(14,23,48,0.55);
+    text-align: center;
+  }
+  body.dark .crumb { color: rgba(232,236,255,0.55); }
+  .phone {
+    position: relative;
+    width: 380px;
+    height: 760px;
+    border-radius: 46px;
+    background: #111;
+    padding: 12px;
+    box-shadow: 0 22px 50px rgba(40,30,20,0.22), 0 2px 0 rgba(0,0,0,0.06);
+  }
+  body.dark .phone { box-shadow: 0 22px 50px rgba(0,0,0,0.5); }
+  .phone-screen {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    border-radius: 34px;
+    overflow: hidden;
+    background: #fff;
+  }
+  .phone-notch {
+    position: absolute; top: 14px; left: 50%; transform: translateX(-50%);
+    width: 110px; height: 26px; background: #111; border-radius: 16px; z-index: 50;
+    pointer-events: none;
+  }
+  .statusbar {
+    position: absolute; top: 0; left: 0; right: 0; height: 44px;
+    display:flex; align-items:center; justify-content: space-between;
+    padding: 0 28px 0 32px; font-size: 14px; font-weight: 600; z-index: 49;
+    pointer-events: none;
+  }
+  .statusbar .right { display:flex; gap:6px; align-items:center; }
+  .statusbar .battery { width: 24px; height: 12px; border-radius: 3px; border: 1.3px solid currentColor; position: relative; }
+  .statusbar .battery::after { content:""; position:absolute; inset: 1.5px; right: 5px; background: currentColor; border-radius: 1px; }
+  .statusbar .battery::before { content:""; position:absolute; right:-3px; top: 3px; bottom: 3px; width: 1.5px; background: currentColor; border-radius: 0 1.5px 1.5px 0; }
+
+  /* hide native input styling */
+  input, textarea, button { font: inherit; color: inherit; }
+  input:focus, textarea:focus, button:focus { outline: none; }
+
+  /* shake for invalid */
+  @keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-4px)} 75%{transform:translateX(4px)} }
+  .shake { animation: shake .35s ease-in-out; }
+
+  /* fade-up entry */
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+  .fade-up { animation: fadeUp .35s cubic-bezier(.2,.7,.3,1) both; }
+
+  /* stamp drop */
+  @keyframes stampIn {
+    0% { opacity: 0; transform: scale(2) rotate(0deg); }
+    60% { opacity: 1; transform: scale(0.92) rotate(6deg); }
+    100% { opacity: 0.85; transform: scale(1) rotate(6deg); }
+  }
+  .stamp-in { animation: stampIn .5s cubic-bezier(.5,1.6,.4,1) both; }
+
+  /* leaderboard bar grow */
+  @keyframes barGrow { from { width: 0; } }
+  .bar-grow { animation: barGrow 1.2s cubic-bezier(.2,.7,.3,1) both; }
+
+  /* tick pulse */
+  @keyframes tickPulse {
+    0% { background: rgba(196,48,43,0.0); }
+    20% { background: rgba(196,48,43,0.18); }
+    100% { background: rgba(196,48,43,0.0); }
+  }
+  .row-tick { animation: tickPulse 1.4s ease-out; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script type="text/babel" src="tweaks-panel.jsx"></script>
+<script type="text/babel" src="lab-prototype.jsx"></script>
+</body>
+</html>
