@@ -14,16 +14,12 @@ export const supabase = createClient(url, anon, {
 export const DEFAULT_CONFIG: Config = {
   id: 1,
   total_cheeses: 0,
-  round_1_open: false,
-  round_2_open: false,
+  tasting_open: false,
   results_revealed: false,
-  finalist_ids: [],
+  per_cheese_cap: 20,
+  min_raters_to_qualify: 5,
 };
 
-/**
- * Hit the Supabase REST endpoint directly so we can read the HTTP status
- * and body. Useful when the JS client returns an empty {} error.
- */
 export async function diagnoseSupabase(): Promise<void> {
   try {
     const res = await fetch(`${url}/rest/v1/config?select=*&id=eq.1`, {
@@ -45,11 +41,6 @@ export async function diagnoseSupabase(): Promise<void> {
   }
 }
 
-/**
- * Fetch config without throwing if the row doesn't exist yet.
- * Returns DEFAULT_CONFIG if not present, so pages never blow up
- * before the host has done initial setup.
- */
 export async function getConfig(): Promise<Config> {
   const { data, error } = await supabase
     .from("config")
@@ -62,18 +53,13 @@ export async function getConfig(): Promise<Config> {
       details: error.details,
       hint: error.hint,
       code: error.code,
-      raw: error,
+      stringified: JSON.stringify(error),
     });
     return DEFAULT_CONFIG;
   }
   return (data as Config | null) ?? DEFAULT_CONFIG;
 }
 
-/**
- * Ensures the singleton config row exists. Safe to call on admin mount.
- * Select-then-insert (no upsert) so we never trip over RLS UPDATE policies
- * when only an INSERT is actually needed.
- */
 export async function ensureConfigRow(): Promise<Config> {
   const existing = await getConfig();
   if (existing !== DEFAULT_CONFIG) return existing;
@@ -85,7 +71,6 @@ export async function ensureConfigRow(): Promise<Config> {
     .maybeSingle();
 
   if (error) {
-    // Code 23505 = unique violation = row already exists. Re-fetch.
     if (error.code === "23505") return await getConfig();
     console.error("[ensureConfigRow] failed:", {
       message: error.message,
@@ -100,9 +85,6 @@ export async function ensureConfigRow(): Promise<Config> {
   return (data as Config | null) ?? DEFAULT_CONFIG;
 }
 
-/**
- * Patches config (id=1). Caller passes only the fields they want to change.
- */
 export async function patchConfig(patch: Partial<Omit<Config, "id">>): Promise<Config> {
   const { data, error } = await supabase
     .from("config")
@@ -118,7 +100,6 @@ export async function patchConfig(patch: Partial<Omit<Config, "id">>): Promise<C
 
 const ALL_UUIDS_SENTINEL = "00000000-0000-0000-0000-000000000000";
 
-/** Delete every row from a table that has a uuid id column. */
-export async function deleteAll(table: "guests" | "votes_round1" | "votes_round2") {
+export async function deleteAll(table: "guests" | "tastings") {
   return supabase.from(table).delete().neq("id", ALL_UUIDS_SENTINEL);
 }

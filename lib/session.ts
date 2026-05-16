@@ -7,7 +7,6 @@ const KEY = "schmear:guest";
 export type StoredGuest = {
   id: string;
   name: string;
-  flight: number[];
 };
 
 export function saveGuest(g: StoredGuest) {
@@ -31,10 +30,6 @@ export function clearGuest() {
   window.localStorage.removeItem(KEY);
 }
 
-/**
- * Verifies the locally-stored guest still exists in the DB
- * (host may have reset the event). If not, wipes localStorage.
- */
 export async function verifyGuest(g: StoredGuest): Promise<boolean> {
   const { data } = await supabase
     .from("guests")

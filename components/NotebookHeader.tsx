@@ -1,11 +1,11 @@
 import { ReactNode } from "react";
 
 type Props = {
-  pageId: string;
+  pageId?: string;
   right?: ReactNode;
 };
 
-export function NotebookHeader({ pageId: _pageId, right }: Props) {
+export function NotebookHeader({ right }: Props) {
   // The "NOTEBOOK_07 / PG.0xx" strip was removed. Status pills (the `right`
   // slot, e.g. "TASTING_PANEL · 1/2") still render so guests/admins can see
   // progress. When there's nothing on the right, render nothing at all.
